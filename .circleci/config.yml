@@ -1,0 +1,36 @@
+version: 2.1
+orbs:
+  go: circleci/go@1.5.0
+  codecov: codecov/codecov@1.1.1
+executors:
+  sandbox:
+    docker:
+      - image: cimg/go:1.15.2
+jobs:
+  test:
+    executor: sandbox
+    resource_class: small
+    environment:
+      - TEST_RESULTS: /tmp/test-results
+    steps:
+      - run: mkdir -p $TEST_RESULTS
+      - checkout
+      - go/mod-download-cached
+      - run: go vet ./...
+      - run: PL_ENV=test gotestsum --junitfile ${TEST_RESULTS}/unit-tests.xml -- -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - codecov/upload:
+          file: coverage.txt
+          token: ${CODECOV_TOKEN}
+          when: on_success
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+      - store_test_results:
+          path: /tmp/test-results
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
+
+
