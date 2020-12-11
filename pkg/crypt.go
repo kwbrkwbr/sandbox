@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 )
 
 var iv = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
@@ -37,8 +38,13 @@ func CryptCBC(v, k []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	cbcIV := make([]byte, aes.BlockSize)
+	if _, err := rand.Read(cbcIV); err != nil {
+		return nil, err
+	}
 	cbc := cipher.NewCBCEncrypter(c, iv)
 	pad := cbcPad(v)
+	pad = append(cbcIV, pad...) // 先頭にIVをつける
 	b := make([]byte, len(pad))
 	cbc.CryptBlocks(b, pad)
 	return b, nil
@@ -49,7 +55,11 @@ func DecryptCBC(v, k []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	cbc := cipher.NewCBCDecrypter(c, iv)
+
+	// IVと複合対象を分ける
+	cbcIV := v[:aes.BlockSize]
+	v = v[aes.BlockSize:]
+	cbc := cipher.NewCBCDecrypter(c, cbcIV)
 
 	r := make([]byte, len(v))
 	cbc.CryptBlocks(r, v)
