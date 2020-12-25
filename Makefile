@@ -10,3 +10,6 @@ install-realize:
 
 realize:
 	realize s --build --run
+
+run-firestore:
+	gcloud beta emulators firestore start --host-port=localhost:8888

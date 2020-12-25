@@ -1,0 +1,37 @@
+{{ define "index" }}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="/put" method="post"> <!--　actionがrouter.goに対応している -->
+    <label>Name</label>
+    <input type="text" name="name" required>
+    <label>Age</label>
+    <input type="number" min="0" max="999" name="age" required>
+    <button type="submit">submit</button>
+</form>
+<form action="/fetch" method="get">　<!--　actionがrouter.goに対応している -->
+    <button type="submit">Fetch</button>
+</form>
+<form action="/delete_all" method="get">　<!--　actionがrouter.goに対応している -->
+    <button type="submit">delete all</button>
+</form>
+<div>
+    {{ range .members }} <!--　rangeを利用して、配列の中身を展開　-->
+    <form action="/delete" method="post">　<!--　actionがrouter.goに対応している -->
+        <div>
+            <input type="text" name="id" value="{{ .Id }}" hidden>　
+            <!--　FirestoreのドキュメントIDは非表示で'value'として受け渡ししている -->
+            Name:   {{ .Name }}
+            Age:    {{ .Age }}
+            <button type="submit">delete</button>
+        </div>
+    </form>
+    {{ end }}
+</div>
+</body>
+</html>
+{{ end }}
